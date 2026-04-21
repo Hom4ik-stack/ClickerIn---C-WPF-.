@@ -27,7 +27,6 @@ namespace ClickerIn.Services
     {
         private readonly IInputSimulatorService _sim;
         private readonly IWindowManager _win;
-      
         private readonly IDpiService _dpi;
         private readonly IWindowProfileService _profileSvc;
         private static readonly Random _rng = new Random();
@@ -41,7 +40,6 @@ namespace ClickerIn.Services
         {
             _sim = sim;
             _win = win;
-           
             _dpi = dpi;
             _profileSvc = profileSvc;
         }
@@ -51,7 +49,6 @@ namespace ClickerIn.Services
             IsRunning = true;
             _internalCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             var token = _internalCts.Token;
-
             var sw = System.Diagnostics.Stopwatch.StartNew();
             bool success = true;
 
@@ -68,8 +65,7 @@ namespace ClickerIn.Services
                     await Task.Delay(300, token);
                 }
 
-                int loops = scenario.IsLoop ? Math.Max(1, scenario.LoopCount) : 1;
-                if (scenario.IsLoop && scenario.LoopCount <= 0) loops = int.MaxValue;
+                int loops = scenario.IsLoop ? (scenario.LoopCount <= 0 ? int.MaxValue : Math.Max(1, scenario.LoopCount)) : 1;
 
                 for (int loop = 1; loop <= loops; loop++)
                 {
@@ -104,6 +100,11 @@ namespace ClickerIn.Services
 
                         await ExecuteStep(step, scenario, token);
                     }
+
+                    if (loop < loops)
+                    {
+                        token.ThrowIfCancellationRequested();
+                    }
                 }
             }
             catch (OperationCanceledException) { success = false; throw; }
@@ -129,8 +130,7 @@ namespace ClickerIn.Services
                 var hwnd = _win.FindByProcess(step.RecordedProcessName);
                 if (hwnd != IntPtr.Zero)
                 {
-                    NativeMethods.RECT rect;
-                    if (_win.GetWindowRect(hwnd, out rect))
+                    if (_win.GetWindowRect(hwnd, out var rect))
                     {
                         double scale = _dpi.GetSystemDpiScale() / step.RecordedDpiScale;
                         x = rect.Left + (int)(step.RelativeX * scale);
@@ -141,8 +141,10 @@ namespace ClickerIn.Services
 
             if (step.RandomizeCoords)
             {
-                x += _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
-                y += _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
+                int offsetX = _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
+                int offsetY = _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
+                x = Math.Max(0, x + offsetX);
+                y = Math.Max(0, y + offsetY);
             }
 
             for (int attempt = 0; attempt <= step.RetryCount; attempt++)
@@ -189,8 +191,10 @@ namespace ClickerIn.Services
                     int dx = step.DragToX, dy = step.DragToY;
                     if (step.RandomizeCoords)
                     {
-                        dx += _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
-                        dy += _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
+                        int offsetX = _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
+                        int offsetY = _rng.Next(-step.RandomCoordsRadius, step.RandomCoordsRadius + 1);
+                        dx = Math.Max(0, dx + offsetX);
+                        dy = Math.Max(0, dy + offsetY);
                     }
                     _sim.DragDrop(x, y, dx, dy, step.MouseButtonHeld, step.MouseMovement);
                     break;

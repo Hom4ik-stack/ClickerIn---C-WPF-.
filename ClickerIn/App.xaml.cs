@@ -1,11 +1,14 @@
-﻿using System;
+﻿using ClickerIn.Services;
+using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Windows;
-using ClickerIn.Services;
+using System.Windows.Data;
 
 namespace ClickerIn
 {
+
     public partial class App : Application
     {
         public static MouseHookService MouseHook { get; private set; }

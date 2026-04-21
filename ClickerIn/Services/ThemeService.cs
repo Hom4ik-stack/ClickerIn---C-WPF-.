@@ -35,7 +35,6 @@ namespace ClickerIn.Services
             "TabBackgroundBrush", "TabActiveBackgroundBrush"
         };
 
-        // Кэш кисток — избегаем повторного парсинга цветов
         private static readonly Dictionary<string, SolidColorBrush> _brushCache = new Dictionary<string, SolidColorBrush>();
 
         private static SolidColorBrush GetBrush(string hex)
@@ -43,7 +42,7 @@ namespace ClickerIn.Services
             if (!_brushCache.TryGetValue(hex, out var brush))
             {
                 brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-                brush.Freeze(); // Freeze для потокобезопасности и производительности
+                brush.Freeze();
                 _brushCache[hex] = brush;
             }
             return brush;
@@ -73,4 +72,3 @@ namespace ClickerIn.Services
         }
     }
 }
-

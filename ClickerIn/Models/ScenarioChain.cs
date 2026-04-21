@@ -11,8 +11,7 @@ namespace ClickerIn.Models
         private int _delayAfterMs = 2000;
         private bool _enabled = true;
         private int _order;
-
-        public string ScenarioId { get => _scenarioId; set => Set(ref _scenarioId, value); }
+      public string ScenarioId { get => _scenarioId; set => Set(ref _scenarioId, value); }
         public string ScenarioName { get => _scenarioName; set => Set(ref _scenarioName, value); }
         public int DelayAfterMs { get => _delayAfterMs; set => Set(ref _delayAfterMs, value); }
         public bool Enabled { get => _enabled; set => Set(ref _enabled, value); }

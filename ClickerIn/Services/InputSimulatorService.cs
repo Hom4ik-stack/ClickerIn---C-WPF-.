@@ -33,7 +33,6 @@ namespace ClickerIn.Services
         {
             NativeMethods.SetCursorPos(x, y);
             Thread.Sleep(RandomDelay(10, 30));
-
             switch (type)
             {
                 case ClickType.Left:
@@ -84,7 +83,7 @@ namespace ClickerIn.Services
             for (int i = 1; i <= steps; i++)
             {
                 double t = (double)i / steps;
-                t = t * t * (3 - 2 * t); // smoothstep
+                t = t * t * (3 - 2 * t);
                 int cx = start.X + (int)((x - start.X) * t);
                 int cy = start.Y + (int)((y - start.Y) * t);
                 NativeMethods.SetCursorPos(cx, cy);
@@ -120,11 +119,8 @@ namespace ClickerIn.Services
         {
             NativeMethods.SetCursorPos(x, y);
             Thread.Sleep(RandomDelay(10, 30));
-
             if (horizontal)
             {
-                // WM_MOUSEHWHEEL via mouse_event not supported directly;
-                // simulate via SendInput
                 var input = new NativeMethods.INPUT
                 {
                     type = NativeMethods.INPUT_MOUSE,
@@ -132,7 +128,7 @@ namespace ClickerIn.Services
                     {
                         mi = new NativeMethods.MOUSEINPUT
                         {
-                            dwFlags = 0x01000, // MOUSEEVENTF_HWHEEL
+                            dwFlags = 0x01000,
                             mouseData = (uint)amount
                         }
                     }
@@ -141,9 +137,8 @@ namespace ClickerIn.Services
             }
             else
             {
-                // Scroll in increments for smoother feel
                 int remaining = amount;
-                int chunkSize = 120; // WHEEL_DELTA
+                int chunkSize = 120;
                 while (remaining != 0)
                 {
                     int chunk = remaining > 0
@@ -161,7 +156,6 @@ namespace ClickerIn.Services
         {
             MouseDown(x1, y1, button);
             Thread.Sleep(RandomDelay(30, 80));
-
             if (trajectory != null && trajectory.Points.Count > 0)
             {
                 foreach (var pt in trajectory.Points)
@@ -174,7 +168,6 @@ namespace ClickerIn.Services
             {
                 MoveMouseSmooth(x2, y2, RandomDelay(200, 500));
             }
-
             Thread.Sleep(RandomDelay(30, 80));
             MouseUp(x2, y2, button);
         }
@@ -197,8 +190,8 @@ namespace ClickerIn.Services
 
             foreach (var m in modKeys)
                 NativeMethods.keybd_event(m, 0, NativeMethods.KEYEVENTF_KEYDOWN, UIntPtr.Zero);
-
             Thread.Sleep(RandomDelay(10, 30));
+
             byte vk = (byte)KeyInterop.VirtualKeyFromKey(key);
             NativeMethods.keybd_event(vk, 0, NativeMethods.KEYEVENTF_KEYDOWN, UIntPtr.Zero);
             Thread.Sleep(RandomDelay(30, 80));
@@ -216,7 +209,7 @@ namespace ClickerIn.Services
             {
                 var inputs = new NativeMethods.INPUT[2];
                 inputs[0].type = NativeMethods.INPUT_KEYBOARD;
-                inputs[0].u.ki = new NativeMethods.KEYBDINPUT { wScan = c, dwFlags = 0x0004 }; // KEYEVENTF_UNICODE
+                inputs[0].u.ki = new NativeMethods.KEYBDINPUT { wScan = c, dwFlags = 0x0004 };
                 inputs[1].type = NativeMethods.INPUT_KEYBOARD;
                 inputs[1].u.ki = new NativeMethods.KEYBDINPUT { wScan = c, dwFlags = 0x0004 | NativeMethods.KEYEVENTF_KEYUP };
                 NativeMethods.SendInput(2, inputs, Marshal.SizeOf<NativeMethods.INPUT>());

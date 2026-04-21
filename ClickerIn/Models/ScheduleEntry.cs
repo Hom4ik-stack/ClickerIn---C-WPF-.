@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using ClickerIn.Helpers;
@@ -77,6 +76,9 @@ namespace ClickerIn.Models
         public string ScenarioName { get => _scenarioName; set => Set(ref _scenarioName, value); }
         public int DelayAfterMs { get => _delayAfterMs; set => Set(ref _delayAfterMs, value); }
         public int Order { get => _order; set => Set(ref _order, value); }
+
+        public string OrderDisplay => $"{Order + 1}.";
+        public string DelayDisplay => DelayAfterMs > 0 ? $"{DelayAfterMs} мс" : "без паузы";
 
         public string Display
         {
@@ -161,7 +163,6 @@ namespace ClickerIn.Models
         public bool HasNextRun => _nextRunSet;
         public void ClearNextRun() { _nextRunSet = false; }
         public int RunCount { get => _runCount; set => Set(ref _runCount, value); }
-
         public bool IsChain { get => _isChain; set => Set(ref _isChain, value); }
         public bool StopChainOnError { get => _stopChainOnError; set => Set(ref _stopChainOnError, value); }
 
@@ -179,7 +180,7 @@ namespace ClickerIn.Models
         {
             var list = new ObservableCollection<DayTimeEntry>();
             var days = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
-                               DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday };
+                DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday };
             foreach (var d in days)
                 list.Add(new DayTimeEntry { Day = d, Enabled = false });
             return list;
@@ -193,14 +194,18 @@ namespace ClickerIn.Models
                 case ScheduleMode.Once:
                     if (HasOnceDateTime && OnceDateTime > now) { result = OnceDateTime; return true; }
                     result = default; return false;
+
                 case ScheduleMode.Daily:
                     var todayDaily = now.Date + DailyTime;
                     result = todayDaily > now ? todayDaily : todayDaily.AddDays(1);
                     return true;
+
                 case ScheduleMode.WeeklyCustom:
                     return TryCalculateNextWeekly(now, out result);
+
                 case ScheduleMode.Interval:
                     return TryCalculateNextInterval(now, out result);
+
                 default:
                     result = default; return false;
             }
@@ -210,8 +215,10 @@ namespace ClickerIn.Models
         {
             var enabled = WeeklyEntries.Where(e => e.Enabled).ToList();
             if (enabled.Count == 0) { result = default; return false; }
+
             DateTime nearest = DateTime.MaxValue;
             bool found = false;
+
             for (int offset = 0; offset < 8; offset++)
             {
                 var checkDate = now.Date.AddDays(offset);
@@ -221,6 +228,7 @@ namespace ClickerIn.Models
                     if (candidate > now && candidate < nearest) { nearest = candidate; found = true; }
                 }
             }
+
             result = nearest; return found;
         }
 
@@ -231,22 +239,24 @@ namespace ClickerIn.Models
                 if (now.Date > IntervalStartTime.Date) { result = default; return false; }
                 if (now < IntervalStartTime) { result = IntervalStartTime; return true; }
                 if (now > IntervalEndTime) { result = default; return false; }
+
                 if (HasLastRun)
                 {
                     var next = LastRun.AddMinutes(IntervalMinutes);
                     if (next <= IntervalEndTime) { result = next; return true; }
                     result = default; return false;
                 }
-                result = now; return true;
+
+                result = IntervalStartTime; return true;
             }
+
             if (HasLastRun) { result = LastRun.AddMinutes(IntervalMinutes); return true; }
             result = now; return true;
         }
 
         public void UpdateNextRun()
         {
-            DateTime next;
-            if (TryCalculateNextRun(out next)) NextRun = next;
+            if (TryCalculateNextRun(out var next)) NextRun = next;
             else ClearNextRun();
         }
 
@@ -255,7 +265,7 @@ namespace ClickerIn.Models
             get
             {
                 if (IsChain && ChainItems.Count > 0)
-                    return "🔗 " + string.Join(" → ", ChainItems.Select(c => c.ScenarioName));
+                    return " " + string.Join(" → ", ChainItems.Select(c => c.ScenarioName));
                 return ScenarioName ?? "—";
             }
         }
@@ -264,25 +274,28 @@ namespace ClickerIn.Models
         {
             get
             {
-                var parts = new List<string>();
-                parts.Add("📋 " + DisplayName);
+                var parts = new System.Collections.Generic.List<string>();
+                parts.Add(" " + DisplayName);
+
                 switch (Mode)
                 {
                     case ScheduleMode.Once:
-                        if (HasOnceDateTime) parts.Add("🕐 " + OnceDateTime.ToString("dd.MM.yyyy HH:mm"));
+                        if (HasOnceDateTime) parts.Add(" " + OnceDateTime.ToString("dd.MM.yyyy HH:mm"));
                         break;
                     case ScheduleMode.Daily:
-                        parts.Add("📅 Ежедневно " + DailyTime.ToString("hh\\:mm"));
+                        parts.Add(" Ежедневно " + DailyTime.ToString("hh\\:mm"));
                         break;
                     case ScheduleMode.WeeklyCustom:
-                        parts.Add("📅 " + string.Join(", ", WeeklyEntries.Where(e => e.Enabled).Select(e => e.Display)));
+                        parts.Add(" " + string.Join(", ", WeeklyEntries.Where(e => e.Enabled).Select(e => e.Display)));
                         break;
                     case ScheduleMode.Interval:
-                        parts.Add("🔄 Каждые " + IntervalMinutes + " мин");
+                        parts.Add(" Каждые " + IntervalMinutes + " мин");
                         break;
                 }
-                if (HasNextRun) parts.Add("➡ " + NextRun.ToString("HH:mm"));
+
+                if (HasNextRun) parts.Add("➡" + NextRun.ToString("HH:mm"));
                 if (!Enabled) parts.Add("⏸");
+
                 return string.Join(" | ", parts);
             }
         }

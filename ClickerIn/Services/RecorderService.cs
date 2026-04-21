@@ -201,23 +201,23 @@ namespace ClickerIn.Services
         {
             FlushMovement(nowMs);
             int delay = (int)(nowMs - _lastEventMs);
-            _lastEventMs = nowMs;
 
-            if (_steps.Count > 0)
+            if (_steps.Count > 0 && delay < 200)
             {
                 var last = _steps[_steps.Count - 1];
-                if (last.ActionType == StepActionType.Scroll && (nowMs - _lastEventMs) < 200)
+                if (last.ActionType == StepActionType.Scroll)
                 {
                     last.ScrollAmount += delta;
+                    _lastEventMs = nowMs;
                     return;
                 }
             }
 
+            _lastEventMs = nowMs;
             var step = CreateBaseStep(StepActionType.Scroll, pt, delay);
             step.ScrollAmount = delta;
             AddStep(step);
         }
-
         private void RecordClick(Point pt, ClickType click, long nowMs)
         {
             int delay = (int)(nowMs - _lastEventMs);

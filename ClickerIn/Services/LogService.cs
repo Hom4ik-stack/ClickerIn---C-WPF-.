@@ -27,7 +27,6 @@ namespace ClickerIn.Services
     {
         private readonly Dispatcher _disp;
         private readonly int _max;
-
         public ObservableCollection<LogEntry> Entries { get; } = new ObservableCollection<LogEntry>();
 
         public LogService(int max = 500)
@@ -51,7 +50,6 @@ namespace ClickerIn.Services
         private void Insert(LogEntry e)
         {
             Entries.Add(e);
-            // Удаляем пачкой, а не по одному — снижает количество уведомлений коллекции
             if (Entries.Count > _max + 50)
             {
                 while (Entries.Count > _max)

@@ -6,6 +6,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace ClickerIn
@@ -292,17 +294,75 @@ namespace ClickerIn
             }
         }
 
+
+
+
         private void AddTask_Click(object s, RoutedEventArgs e)
         {
             if (_current == null) { MessageBox.Show("Выберите сценарий."); return; }
             var w = new ScheduleEditWindow(_scenarios, _current, _win) { Owner = this };
             if (w.ShowDialog() == true && w.Saved && w.Entry != null)
             {
-                _scheduleEntries.Add(w.Entry);
-                _sched.Add(w.Entry, async entry => await OnScheduledRun(entry));
+                var existing = _scheduleEntries.FirstOrDefault(en => en.Id == w.Entry.Id);
+                if (existing != null)
+                {
+                    int idx = _scheduleEntries.IndexOf(existing);
+                    _scheduleEntries[idx] = w.Entry;
+                    _sched.Update(w.Entry);
+                }
+                else
+                {
+                    _scheduleEntries.Add(w.Entry);
+                    _sched.Add(w.Entry, async entry => await OnScheduledRun(entry));
+                }
+
                 SaveData();
                 _log.Info("Расписание: " + w.Entry.DisplayInfo);
                 _overlay?.RefreshUpcoming();
+            }
+        }
+
+        private async void DoRun()
+        {
+            if (_current == null || _current.Steps.Count == 0)
+            { MessageBox.Show("Нет шагов."); return; }
+
+            if (_settings.ConfirmBeforeRun &&
+                MessageBox.Show("Запустить \"" + _current.Name + "\"?", "Пуск",
+                    MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+
+            _cts = new CancellationTokenSource();
+            BtnRun.IsEnabled = false;
+            BtnStop.IsEnabled = true;
+            TxtStatus.Text = "▶ Работает...";
+            TxtRunStatus.Text = "▶ ЗАПУЩЕН";
+            TxtRunStatus.Foreground = Brushes.LimeGreen;
+
+            var progress = new Progress<RunProgress>(p =>
+            {
+                PrgBar.Value = p.Percent;
+                TxtProgress.Text = "Цикл " + p.Loop + ": " + p.Step + "/" + p.Total;
+                TxtProgressDetail.Text = p.Message;
+            });
+
+            try
+            {
+                await _runner.Run(_current, _cts.Token, progress);
+                TxtStatus.Text = "✅ Завершён";
+            }
+            catch (OperationCanceledException) { TxtStatus.Text = "⏹ Остановлен"; }
+            catch (Exception ex) { _log.Error(ex.Message); TxtStatus.Text = "❌ Ошибка"; }
+            finally
+            {
+                _cts = null;
+                BtnRun.IsEnabled = true;
+                BtnStop.IsEnabled = false;
+                TxtRunStatus.Text = "";
+                PrgBar.Value = 0;
+                TxtProgress.Text = "";
+                TxtProgressDetail.Text = "";
+                UpdateUI();
+                SaveData();
             }
         }
 
@@ -359,7 +419,10 @@ namespace ClickerIn
                 TxtName.Text = _current.Name;
                 ChkLoop.IsChecked = _current.IsLoop;
                 TxtLoops.Text = _current.LoopCount.ToString();
-                TxtStepCount.Text = "Шагов: " + _current.Steps.Count;
+                string loopInfo = "";
+                if (_current.IsLoop)
+                    loopInfo = _current.LoopCount <= 0 ? " | Цикл: ∞" : " | Цикл: " + _current.LoopCount;
+                TxtStepCount.Text = "Шагов: " + _current.Steps.Count + loopInfo;
                 if (!string.IsNullOrEmpty(_current.TargetProcessName))
                     TxtTargetProcess.Text = "🎯 " + _current.TargetProcessName + " | " + _current.Stats.Summary;
                 else
@@ -529,47 +592,6 @@ namespace ClickerIn
         private void Run_Click(object s, RoutedEventArgs e) => DoRun();
         private void Stop_Click(object s, RoutedEventArgs e) => DoStop();
 
-        private async void DoRun()
-        {
-            if (_current == null || _current.Steps.Count == 0)
-            { MessageBox.Show("Нет шагов."); return; }
-            if (_settings.ConfirmBeforeRun &&
-                MessageBox.Show("Запустить \"" + _current.Name + "\"?", "Пуск",
-                    MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
-
-            _cts = new CancellationTokenSource();
-            BtnRun.IsEnabled = false;
-            BtnStop.IsEnabled = true;
-            TxtStatus.Text = "▶ Работает...";
-            TxtRunStatus.Text = "▶ ЗАПУЩЕН";
-            TxtRunStatus.Foreground = Brushes.LimeGreen;
-
-            var progress = new Progress<RunProgress>(p =>
-            {
-                PrgBar.Value = p.Percent;
-                TxtProgress.Text = "Цикл " + p.Loop + ": " + p.Step + "/" + p.Total;
-                TxtProgressDetail.Text = p.Message;
-            });
-
-            try
-            {
-                await _runner.Run(_current, _cts.Token, progress);
-                TxtStatus.Text = "✅ Завершён";
-            }
-            catch (OperationCanceledException) { TxtStatus.Text = "⏹ Остановлен"; }
-            catch (Exception ex) { _log.Error(ex.Message); TxtStatus.Text = "❌ Ошибка"; }
-            finally
-            {
-                _cts = null;
-                BtnRun.IsEnabled = true;
-                BtnStop.IsEnabled = false;
-                TxtRunStatus.Text = "";
-                PrgBar.Value = 0;
-                TxtProgressDetail.Text = "";
-                UpdateUI();
-                SaveData();
-            }
-        }
 
         private void DoStop()
         {
@@ -577,17 +599,14 @@ namespace ClickerIn
             _runner.Stop();
         }
 
+
      
 
-        private void DelTask_Click(object s, RoutedEventArgs e)
-        {
-            if (LstTasks.SelectedItem is ScheduleEntry entry)
-            {
-                _sched.Remove(entry.Id);
-                _scheduleEntries.Remove(entry);
-                SaveData();
-            }
-        }
+   
+
+
+
+
 
         private void RefreshScheduleList()
         {
@@ -595,6 +614,7 @@ namespace ClickerIn
             _overlay?.RefreshUpcoming();
         }
 
+    
      
         private void OpenScenario_Click(object s, RoutedEventArgs e)
         {
@@ -685,5 +705,234 @@ namespace ClickerIn
             if (_rec is IDisposable d) d.Dispose();
             _overlay?.Close();
         }
+
+        private void TaskItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ListBoxItem item && item.Content is ScheduleEntry entry)
+            {
+                EditScheduleEntry(entry);
+                e.Handled = true;
+            }
+        }
+
+        private void MenuItem_EditTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.DataContext is ScheduleEntry entry)
+            {
+                EditScheduleEntry(entry);
+            }
+        }
+
+        private void MenuItem_DuplicateTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.DataContext is ScheduleEntry entry)
+            {
+                DuplicateScheduleEntry(entry);
+            }
+        }
+
+        private void MenuItem_DeleteTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.DataContext is ScheduleEntry entry)
+            {
+                DeleteScheduleEntry(entry);
+            }
+        }
+
+        private void MenuItem_ToggleTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem &&
+                menuItem.DataContext is ScheduleEntry entry)
+            {
+                ToggleScheduleEntry(entry);
+            }
+        }
+
+        private void BtnAddTask_Click(object sender, RoutedEventArgs e)
+        {
+            AddTask_Click(sender, e);
+        }
+
+        private void BtnEditTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstTasks.SelectedItem is ScheduleEntry entry)
+            {
+                EditScheduleEntry(entry);
+            }
+            else
+            {
+                MessageBox.Show("Выберите расписание для редактирования.", "Внимание",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void BtnDeleteTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstTasks.SelectedItem is ScheduleEntry entry)
+            {
+                DeleteScheduleEntry(entry);
+            }
+            else
+            {
+                MessageBox.Show("Выберите расписание для удаления.", "Внимание",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void EditScheduleEntry(ScheduleEntry entry)
+        {
+            if (entry == null) return;
+
+            var w = new ScheduleEditWindow(_scenarios, null, _win, entry) { Owner = this };
+            if (w.ShowDialog() == true && w.Saved && w.Entry != null)
+            {
+                int idx = _scheduleEntries.IndexOf(entry);
+                if (idx >= 0)
+                {
+                    _sched.Remove(entry.Id);
+
+                    _scheduleEntries.RemoveAt(idx);
+                    _scheduleEntries.Insert(idx, w.Entry);
+
+                    _sched.Add(w.Entry, async en => await OnScheduledRun(en));
+
+                    SaveData();
+                    LstTasks.Items.Refresh();
+                    _log.Info("📝 Изменено: " + w.Entry.DisplayInfo);
+                    _overlay?.RefreshUpcoming();
+                }
+            }
+        }
+
+        private void DuplicateScheduleEntry(ScheduleEntry entry)
+        {
+            if (entry == null) return;
+
+            var duplicate = new ScheduleEntry
+            {
+                ScenarioId = entry.ScenarioId,
+                ScenarioName = entry.ScenarioName + " (копия)",
+                Mode = entry.Mode,
+                Enabled = false,
+                TargetProcessName = entry.TargetProcessName,
+                PreAlertEnabled = entry.PreAlertEnabled,
+                PreAlertMinutes = entry.PreAlertMinutes,
+                IsChain = entry.IsChain,
+                StopChainOnError = entry.StopChainOnError,
+                DailyTime = entry.DailyTime,
+                IntervalMinutes = entry.IntervalMinutes,
+                IntervalTodayOnly = entry.IntervalTodayOnly
+            };
+
+            if (entry.HasOnceDateTime)
+                duplicate.OnceDateTime = entry.OnceDateTime.AddDays(1);
+
+            if (entry.HasIntervalStartTime)
+                duplicate.IntervalStartTime = entry.IntervalStartTime;
+
+            if (entry.HasIntervalEndTime)
+                duplicate.IntervalEndTime = entry.IntervalEndTime;
+
+            foreach (var we in entry.WeeklyEntries)
+            {
+                var newWe = duplicate.WeeklyEntries.FirstOrDefault(x => x.Day == we.Day);
+                if (newWe != null)
+                {
+                    newWe.Enabled = we.Enabled;
+                    newWe.Hour = we.Hour;
+                    newWe.Minute = we.Minute;
+                }
+            }
+
+            foreach (var ci in entry.ChainItems)
+            {
+                duplicate.ChainItems.Add(new ChainItem
+                {
+                    ScenarioId = ci.ScenarioId,
+                    ScenarioName = ci.ScenarioName,
+                    DelayAfterMs = ci.DelayAfterMs,
+                    Order = ci.Order
+                });
+            }
+
+            duplicate.UpdateNextRun();
+            _scheduleEntries.Add(duplicate);
+            _sched.Add(duplicate, async en => await OnScheduledRun(en));
+
+            SaveData();
+            LstTasks.Items.Refresh();
+            _log.Info("📋 Дублировано: " + duplicate.ScenarioName);
+            _overlay?.RefreshUpcoming();
+        }
+
+        private void DeleteScheduleEntry(ScheduleEntry entry)
+        {
+            if (entry == null) return;
+
+            if (MessageBox.Show($"Удалить расписание:\n{entry.DisplayInfo}?",
+                "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                _sched.Remove(entry.Id);
+                _scheduleEntries.Remove(entry);
+
+                SaveData();
+                LstTasks.Items.Refresh();
+                _log.Info("🗑 Удалено: " + entry.ScenarioName);
+                _overlay?.RefreshUpcoming();
+            }
+        }
+
+        private void ToggleScheduleEntry(ScheduleEntry entry)
+        {
+            if (entry == null) return;
+
+            entry.Enabled = !entry.Enabled;
+
+            if (entry.Enabled)
+            {
+                entry.UpdateNextRun();
+                _log.Info("▶ Включено: " + entry.ScenarioName);
+            }
+            else
+            {
+                entry.ClearNextRun();
+                _log.Info("⏸ Отключено: " + entry.ScenarioName);
+            }
+
+            SaveData();
+            LstTasks.Items.Refresh();
+            _overlay?.RefreshUpcoming();
+        }
+
+        private void DelTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstTasks.SelectedItem is ScheduleEntry entry)
+            {
+                DeleteScheduleEntry(entry);
+            }
+            else
+            {
+                MessageBox.Show("Выберите расписание для удаления.", "Внимание",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void LstTasks_RightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is ListBox listBox && listBox.SelectedItem is ScheduleEntry entry)
+            {
+                var contextMenu = listBox.ContextMenu;
+                if (contextMenu != null)
+                {
+                    contextMenu.DataContext = entry;
+                    contextMenu.IsOpen = true;
+                    e.Handled = true;
+                }
+            }
+        }
+
     }
 }

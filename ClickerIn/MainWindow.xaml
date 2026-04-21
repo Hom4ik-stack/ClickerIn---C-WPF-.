@@ -1,55 +1,49 @@
 ﻿<Window x:Class="ClickerIn.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:models="clr-namespace:ClickerIn.Models"
-        Title="ClickerIn — Автокликер" Width="980" Height="700"
-        MinWidth="820" MinHeight="580"
-        Icon="/pointinghand_100160.ico"
-        WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource WindowBackgroundBrush}"
-        Foreground="{DynamicResource ForegroundBrush}"
-        FontSize="{DynamicResource GlobalFontSize}">
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:models="clr-namespace:ClickerIn.Models"
+ Title="ClickerIn — Автокликер" Width="980" Height="700"
+ MinWidth="820" MinHeight="580"
+ Icon="/pointinghand_100160.ico"
+ WindowStartupLocation="CenterScreen"
+ Background="{DynamicResource WindowBackgroundBrush}"
+ Foreground="{DynamicResource ForegroundBrush}"
+ FontSize="{DynamicResource GlobalFontSize}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-        <!-- Toolbar -->
         <Border Grid.Row="0" Background="{DynamicResource ToolBarBackgroundBrush}" Padding="8,6"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+ BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
             <WrapPanel>
                 <Button Content="📂 Открыть" Click="OpenScenario_Click" Margin="0,0,4,0"
-                        Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                        BorderThickness="0" Padding="10,5" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Padding="10,5" Cursor="Hand"/>
                 <Button Content="💾 Сохранить" Click="SaveScenario_Click" Margin="0,0,4,0"
-                        Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                        BorderThickness="0" Padding="10,5" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Padding="10,5" Cursor="Hand"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
                 <Button Content="⚙ Настройки" Click="Settings_Click" Margin="0,0,4,0"
-                        Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                        BorderThickness="0" Padding="10,5" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Padding="10,5" Cursor="Hand"/>
                 <Button Content="❓ Справка" Click="Help_Click" Margin="0,0,4,0"
-                        Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                        BorderThickness="0" Padding="10,5" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Padding="10,5" Cursor="Hand"/>
                 <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
                 <Button Content="🖥 Оверлей" Click="Overlay_Click"
-                        Background="#FF8EA1E6" Foreground="#FF1E1E2E" FontWeight="Bold"
-                        BorderThickness="0" Padding="12,5" Cursor="Hand"/>
+ Background="#FF8EA1E6" Foreground="#FF1E1E2E" FontWeight="Bold"
+ BorderThickness="0" Padding="12,5" Cursor="Hand"/>
             </WrapPanel>
         </Border>
-
-        <!-- Main content -->
         <Grid Grid.Row="1" Margin="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
-            <!-- Sidebar: Scenarios + Schedule -->
             <Border Grid.Column="0" Background="{DynamicResource PanelBackgroundBrush}"
-                    CornerRadius="8" Padding="8" Margin="0,0,8,0">
+ CornerRadius="8" Padding="8" Margin="0,0,8,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -57,49 +51,55 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-
                     <TextBlock Grid.Row="0" Text="📋 Сценарии"
-                               FontSize="{DynamicResource HeaderFontSize}" FontWeight="Bold" Margin="0,0,0,8"/>
-
+ FontSize="{DynamicResource HeaderFontSize}" FontWeight="Bold" Margin="0,0,0,8"/>
                     <ListBox Grid.Row="1" x:Name="LstScenarios"
-                             Background="Transparent" BorderThickness="0"
-                             Foreground="{DynamicResource ForegroundBrush}"
-                             SelectionChanged="LstScenarios_Changed"/>
-
+ Background="Transparent" BorderThickness="0"
+ Foreground="{DynamicResource ForegroundBrush}"
+ SelectionChanged="LstScenarios_Changed"/>
                     <WrapPanel Grid.Row="2" Margin="0,6,0,4">
                         <Button Content="➕" Click="NewScenario_Click" Width="32" Height="28" ToolTip="Новый сценарий"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand" Margin="0,0,3,0"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand" Margin="0,0,3,0"/>
                         <Button Content="📋" Click="DupScenario_Click" Width="32" Height="28" ToolTip="Дублировать"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand" Margin="0,0,3,0"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand" Margin="0,0,3,0"/>
                         <Button Content="🗑" Click="DelScenario_Click" Width="32" Height="28" ToolTip="Удалить"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+ BorderThickness="0" Cursor="Hand"/>
                     </WrapPanel>
-
                     <Expander Grid.Row="3" Header="⏰ Расписания"
-                              Foreground="{DynamicResource ForegroundBrush}" IsExpanded="False">
+ Foreground="{DynamicResource ForegroundBrush}" IsExpanded="False">
                         <StackPanel>
                             <ListBox x:Name="LstTasks" MaxHeight="120" Background="Transparent"
-                                     BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}"
-                                     FontSize="{DynamicResource SmallFontSize}" DisplayMemberPath="DisplayInfo"/>
+ BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}"
+FontSize="{DynamicResource SmallFontSize}" DisplayMemberPath="DisplayInfo"
+MouseRightButtonUp="LstTasks_RightClick">
+                                <ListBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="✏ Изменить" Click="MenuItem_EditTask_Click"/>
+                                        <MenuItem Header="📋 Дублировать" Click="MenuItem_DuplicateTask_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="▶/⏸ Вкл/Откл" Click="MenuItem_ToggleTask_Click"/>
+                                        <Separator/>
+                                        <MenuItem Header="🗑 Удалить" Click="MenuItem_DeleteTask_Click"/>
+                                    </ContextMenu>
+                                </ListBox.ContextMenu>
+                            </ListBox>
                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                 <Button Content="➕" Click="AddTask_Click" Width="28" Height="24"
-                                        Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                        BorderThickness="0" Cursor="Hand" Margin="0,0,3,0"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand" Margin="0,0,3,0"/>
                                 <Button Content="🗑" Click="DelTask_Click" Width="28" Height="24"
-                                        Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                        BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+ BorderThickness="0" Cursor="Hand"/>
                             </StackPanel>
                         </StackPanel>
                     </Expander>
                 </Grid>
             </Border>
-
-            <!-- Right panel: Steps + Controls -->
             <Border Grid.Column="1" Background="{DynamicResource PanelBackgroundBrush}"
-                    CornerRadius="8" Padding="10">
+ CornerRadius="8" Padding="10">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -109,8 +109,6 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="130"/>
                     </Grid.RowDefinitions>
-
-                    <!-- Scenario name + loop settings -->
                     <Grid Grid.Row="0" Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -122,40 +120,36 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="Имя:" VerticalAlignment="Center" Margin="0,0,4,0"/>
                         <TextBox Grid.Column="1" x:Name="TxtName" Height="28"
-                                 Background="{DynamicResource GridBackgroundBrush}"
-                                 Foreground="{DynamicResource ForegroundBrush}"
-                                 BorderBrush="{DynamicResource BorderBrush}" Padding="6,3"
-                                 TextChanged="TxtName_Changed"/>
+ Background="{DynamicResource GridBackgroundBrush}"
+ Foreground="{DynamicResource ForegroundBrush}"
+ BorderBrush="{DynamicResource BorderBrush}" Padding="6,3"
+ TextChanged="TxtName_Changed"/>
                         <CheckBox Grid.Column="2" x:Name="ChkLoop" Content="🔁 Цикл"
-                                  VerticalAlignment="Center" Margin="8,0"
-                                  Foreground="{DynamicResource ForegroundBrush}"
-                                  Checked="Loop_Changed" Unchecked="Loop_Changed"/>
+ VerticalAlignment="Center" Margin="8,0"
+ Foreground="{DynamicResource ForegroundBrush}"
+Checked="Loop_Changed" Unchecked="Loop_Changed"/>
                         <TextBlock Grid.Column="3" Text="Повторов:" VerticalAlignment="Center"/>
                         <TextBox Grid.Column="4" x:Name="TxtLoops" Height="28" Margin="4,0"
-                                 Background="{DynamicResource GridBackgroundBrush}"
-                                 Foreground="{DynamicResource ForegroundBrush}"
-                                 BorderBrush="{DynamicResource BorderBrush}" TextAlignment="Center"
-                                 TextChanged="TxtLoops_Changed"/>
+ Background="{DynamicResource GridBackgroundBrush}"
+ Foreground="{DynamicResource ForegroundBrush}"
+ BorderBrush="{DynamicResource BorderBrush}" TextAlignment="Center"
+TextChanged="TxtLoops_Changed"/>
                         <TextBlock Grid.Column="5" x:Name="TxtStepCount" VerticalAlignment="Center"
-                                   Foreground="#FF888888" Margin="8,0,0,0"/>
+ Foreground="#FF888888" Margin="8,0,0,0"/>
                     </Grid>
-
-                    <!-- Target process info -->
                     <TextBlock Grid.Row="1" x:Name="TxtTargetProcess" Foreground="#FF8EA1E6"
-                               FontSize="11" Margin="0,0,0,6"/>
-
-                    <!-- Steps DataGrid -->
+ FontSize="11" Margin="0,0,0,6"/>
                     <DataGrid Grid.Row="2" x:Name="Grid" AutoGenerateColumns="False"
-                              Background="{DynamicResource GridBackgroundBrush}"
-                              Foreground="{DynamicResource GridForegroundBrush}"
-                              BorderBrush="{DynamicResource BorderBrush}"
-                              GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="{DynamicResource BorderBrush}"
-                              AlternatingRowBackground="{DynamicResource GridAlternateBackgroundBrush}"
-                              RowBackground="{DynamicResource GridBackgroundBrush}"
-                              HeadersVisibility="Column" CanUserAddRows="False"
-                              SelectionMode="Single" Margin="0,0,0,8"
-                              ColumnHeaderHeight="30">
+ Background="{DynamicResource GridBackgroundBrush}"
+Foreground="{DynamicResource GridForegroundBrush}"
+ BorderBrush="{DynamicResource BorderBrush}"
+ GridLinesVisibility="Horizontal"
+HorizontalGridLinesBrush="{DynamicResource BorderBrush}"
+AlternatingRowBackground="{DynamicResource GridAlternateBackgroundBrush}"
+RowBackground="{DynamicResource GridBackgroundBrush}"
+HeadersVisibility="Column" CanUserAddRows="False"
+ SelectionMode="Single" Margin="0,0,0,8"
+ ColumnHeaderHeight="30">
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="{DynamicResource GridHeaderBackgroundBrush}"/>
@@ -210,67 +204,61 @@
                             <DataGridTextColumn Header="Радиус" Binding="{Binding RandomCoordsRadius}" Width="55"/>
                         </DataGrid.Columns>
                     </DataGrid>
-
-                    <!-- Action buttons -->
                     <WrapPanel Grid.Row="3" Margin="0,0,0,8">
                         <Button Content="➕ Шаг" Click="AddStep_Click" Margin="0,0,4,0" Padding="8,4"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                         <Button Content="🗑 Удалить" Click="DelStep_Click" Margin="0,0,4,0" Padding="8,4"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+ BorderThickness="0" Cursor="Hand"/>
                         <Button Content="⬆" Click="StepUp_Click" Margin="0,0,2,0" Width="30" Height="28"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                         <Button Content="⬇" Click="StepDown_Click" Margin="0,0,4,0" Width="30" Height="28"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                         <Button Content="📋 Копия" Click="DupStep_Click" Margin="0,0,4,0" Padding="8,4"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                         <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
                         <Button x:Name="BtnRecord" Content="⏺ Записать" Click="StartRec_Click"
-                                Margin="0,0,4,0" Padding="8,4"
-                                Background="#FF5C3A3A" Foreground="#FFFF8888"
-                                BorderThickness="0" Cursor="Hand"/>
+ Margin="0,0,4,0" Padding="8,4"
+Background="#FF5C3A3A" Foreground="#FFFF8888"
+BorderThickness="0" Cursor="Hand"/>
                         <Button x:Name="BtnStopRec" Content="⏹ Стоп запись" Click="StopRec_Click"
-                                IsEnabled="False" Margin="0,0,4,0" Padding="8,4"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ IsEnabled="False" Margin="0,0,4,0" Padding="8,4"
+Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                         <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
                         <Button x:Name="BtnRun" Content="▶ Запуск" Click="Run_Click"
-                                Padding="10,4" Margin="0,0,4,0"
-                                Background="#FF8EA1E6" Foreground="#FF1E1E2E" FontWeight="Bold"
-                                BorderThickness="0" Cursor="Hand"/>
+ Padding="10,4" Margin="0,0,4,0"
+Background="#FF8EA1E6" Foreground="#FF1E1E2E" FontWeight="Bold"
+BorderThickness="0" Cursor="Hand"/>
                         <Button x:Name="BtnStop" Content="⏹ Стоп" Click="Stop_Click"
-                                IsEnabled="False" Padding="10,4"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand"/>
+ IsEnabled="False" Padding="10,4"
+Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                         <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="6,2"/>
                         <CheckBox x:Name="ChkRecordMovement" Content="🖱 Движение"
-                                  Foreground="{DynamicResource ForegroundBrush}"
-                                  VerticalAlignment="Center" Margin="0,0,4,0"
-                                  ToolTip="Записывать траекторию движения мыши"/>
+ Foreground="{DynamicResource ForegroundBrush}"
+VerticalAlignment="Center" Margin="0,0,4,0"
+ToolTip="Записывать траекторию движения мыши"/>
                         <Button x:Name="BtnCaptureProfile" Content="📐 Профиль" Click="CaptureProfile_Click" Padding="8,4"
-                                Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
-                                BorderThickness="0" Cursor="Hand" ToolTip="Захватить позицию и размер целевого окна"/>
+ Background="{DynamicResource ButtonBackgroundBrush}" Foreground="{DynamicResource ButtonForegroundBrush}"
+BorderThickness="0" Cursor="Hand" ToolTip="Захватить позицию и размер целевого окна"/>
                     </WrapPanel>
-
-                    <!-- Progress bar -->
                     <Grid Grid.Row="4" Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <ProgressBar x:Name="PrgBar" Minimum="0" Maximum="100" Height="6"
-                                     Background="{DynamicResource GridBackgroundBrush}" Foreground="#FF8EA1E6"/>
+ Background="{DynamicResource GridBackgroundBrush}" Foreground="#FF8EA1E6"/>
                         <TextBlock Grid.Column="1" x:Name="TxtProgress" Margin="8,0,0,0"
-                                   FontSize="11" Foreground="#FF888888"/>
+ FontSize="11" Foreground="#FF888888"/>
                     </Grid>
-
-                    <!-- Log panel -->
                     <Border Grid.Row="5" Background="{DynamicResource GridBackgroundBrush}"
-                            CornerRadius="6" Padding="6">
+ CornerRadius="6" Padding="6">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -279,23 +267,21 @@
                             <Grid Grid.Row="0" Margin="0,0,0,4">
                                 <TextBlock Text="📝 Лог" FontWeight="SemiBold"/>
                                 <Button Content="🗑" Click="ClearLog_Click" HorizontalAlignment="Right"
-                                        Width="24" Height="20" Background="Transparent"
-                                        Foreground="{DynamicResource ForegroundBrush}"
-                                        BorderThickness="0" Cursor="Hand"/>
+ Width="24" Height="20" Background="Transparent"
+Foreground="{DynamicResource ForegroundBrush}"
+BorderThickness="0" Cursor="Hand"/>
                             </Grid>
                             <ListBox Grid.Row="1" x:Name="LstLog" Background="Transparent"
-                                     BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}"
-                                     FontSize="{DynamicResource SmallFontSize}"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+ BorderThickness="0" Foreground="{DynamicResource ForegroundBrush}"
+ FontSize="{DynamicResource SmallFontSize}"
+ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
                         </Grid>
                     </Border>
                 </Grid>
             </Border>
         </Grid>
-
-        <!-- Status bar -->
         <Border Grid.Row="2" Background="{DynamicResource StatusBarBackgroundBrush}" Padding="10,5"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+ BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -310,11 +296,11 @@
                 </StackPanel>
                 <TextBlock Grid.Column="1" x:Name="TxtMouse" Text="X: 0, Y: 0" Margin="0,0,15,0" Foreground="#FF8EA1E6"/>
                 <TextBlock Grid.Column="2" x:Name="TxtWindow" Text="Окно: —" Margin="0,0,15,0"
-                           Foreground="#FF888888" MaxWidth="200" TextTrimming="CharacterEllipsis"/>
+ Foreground="#FF888888" MaxWidth="200" TextTrimming="CharacterEllipsis"/>
                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                     <TextBlock Text="Прозрачность:" VerticalAlignment="Center" Margin="0,0,4,0" FontSize="10" Foreground="#FF888888"/>
                     <Slider x:Name="SldOpacity" Width="80" Minimum="0.3" Maximum="1" Value="1"
-                            ValueChanged="Opacity_Changed" VerticalAlignment="Center"/>
+ ValueChanged="Opacity_Changed" VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
         </Border>

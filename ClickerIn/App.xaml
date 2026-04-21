@@ -26,5 +26,6 @@
         <sys:Double x:Key="GlobalFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">13</sys:Double>
         <sys:Double x:Key="HeaderFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
         <sys:Double x:Key="SmallFontSize" xmlns:sys="clr-namespace:System;assembly=mscorlib">11</sys:Double>
+        
     </Application.Resources>
 </Application>

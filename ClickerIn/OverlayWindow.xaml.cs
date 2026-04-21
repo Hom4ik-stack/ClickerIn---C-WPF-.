@@ -33,7 +33,6 @@ namespace ClickerIn
             Func<ScheduleEntry, Task> onScheduledRun)
         {
             InitializeComponent();
-
             _scenarios = scenarios;
             _entries = entries;
             _runner = runner;
@@ -89,9 +88,14 @@ namespace ClickerIn
             BtnOverlayStop.IsEnabled = true;
             TxtOverlayStatus.Text = "▶ " + sc.Name;
 
+            var progress = new Progress<RunProgress>(p =>
+            {
+                TxtOverlayStatus.Text = $"▶ Цикл {p.Loop}: {p.Step}/{p.Total} ({p.Percent:F0}%)";
+            });
+
             try
             {
-                await _runner.Run(sc, _cts.Token);
+                await _runner.Run(sc, _cts.Token, progress);
                 TxtOverlayStatus.Text = "✅ Готово";
             }
             catch (OperationCanceledException) { TxtOverlayStatus.Text = "⏹ Стоп"; }
@@ -149,8 +153,19 @@ namespace ClickerIn
             var w = new ScheduleEditWindow(_scenarios, sc, _win) { Owner = this };
             if (w.ShowDialog() == true && w.Saved && w.Entry != null)
             {
-                _entries.Add(w.Entry);
-                _sched.Add(w.Entry, _onScheduledRun);
+                var existing = _entries.FirstOrDefault(en => en.Id == w.Entry.Id);
+                if (existing != null)
+                {
+                    int idx = _entries.IndexOf(existing);
+                    _entries[idx] = w.Entry;
+                    _sched.Update(w.Entry);
+                }
+                else
+                {
+                    _entries.Add(w.Entry);
+                    _sched.Add(w.Entry, _onScheduledRun);
+                }
+
                 TxtOverlayStatus.Text = "⏰ Добавлено";
                 RefreshUpcoming();
             }
@@ -163,5 +178,58 @@ namespace ClickerIn
 
         private void CloseOverlay_Click(object s, RoutedEventArgs e) => Close();
         private void MainWindow_Click(object s, RoutedEventArgs e) => App.ShowMainWindow();
+
+        private void UpcomingItem_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (LstUpcoming.SelectedItem is string selected)
+            {
+                var entry = FindEntryByDisplayString(selected);
+                if (entry != null)
+                {
+                    EditScheduleFromOverlay(entry);
+                }
+            }
+        }
+
+        private void EditUpcoming_Click(object sender, RoutedEventArgs e)
+        {
+            if (LstUpcoming.SelectedItem is string selected)
+            {
+                var entry = FindEntryByDisplayString(selected);
+                if (entry != null)
+                {
+                    EditScheduleFromOverlay(entry);
+                }
+            }
+        }
+
+        private ScheduleEntry FindEntryByDisplayString(string display)
+        {
+            if (string.IsNullOrWhiteSpace(display)) return null;
+
+            return _entries.FirstOrDefault(e =>
+                display.Contains(e.DisplayName) ||
+                display.Contains(e.ScenarioName ?? ""));
+        }
+
+        private void EditScheduleFromOverlay(ScheduleEntry entry)
+        {
+            var w = new ScheduleEditWindow(_scenarios, null, _win, entry) { Owner = this };
+            if (w.ShowDialog() == true && w.Saved && w.Entry != null)
+            {
+                int idx = _entries.IndexOf(entry);
+                if (idx >= 0)
+                {
+                    _entries.RemoveAt(idx);
+                    _entries.Insert(idx, w.Entry);
+
+                    _sched.Remove(entry.Id);
+                    _sched.Add(w.Entry, _onScheduledRun);
+
+                    RefreshUpcoming();
+                    TxtOverlayStatus.Text = "📝 Изменено";
+                }
+            }
+        }
     }
 }

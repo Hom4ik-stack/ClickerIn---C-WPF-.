@@ -2,6 +2,9 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using ClickerIn.Models;
 using ClickerIn.Services;
 
@@ -22,24 +25,28 @@ namespace ClickerIn
         { }
 
         public ScheduleEditWindow(ObservableCollection<Scenario> allScenarios,
-            Scenario currentScenario, IWindowManager win, ScheduleEntry existing = null)
+     Scenario currentScenario, IWindowManager win, ScheduleEntry existing = null)
         {
             InitializeComponent();
-
             _win = win;
             _scenarios = allScenarios ?? new ObservableCollection<Scenario>();
 
             if (existing != null)
+            {
                 _entry = existing;
+                Title = "Редактирование расписания";
+            }
             else
+            {
                 _entry = new ScheduleEntry
                 {
-                    ScenarioId = currentScenario.Id,
-                    ScenarioName = currentScenario.Name,
-                    TargetProcessName = currentScenario.TargetProcessName
+                    ScenarioId = currentScenario?.Id,
+                    ScenarioName = currentScenario?.Name,
+                    TargetProcessName = currentScenario?.TargetProcessName
                 };
+                Title = "Новое расписание";
+            }
 
-            // Fill scenario combos
             if (_scenarios.Count == 0 && currentScenario != null)
                 _scenarios.Add(currentScenario);
 
@@ -54,6 +61,7 @@ namespace ClickerIn
 
             DpDate.SelectedDate = DateTime.Today;
             TxtProcess.Text = _entry.TargetProcessName ?? currentScenario?.TargetProcessName ?? "";
+
             LstChain.ItemsSource = _entry.ChainItems;
             WeekDaysList.ItemsSource = _entry.WeeklyEntries;
 
@@ -69,8 +77,25 @@ namespace ClickerIn
 
         private void LoadFromEntry(ScheduleEntry e)
         {
-            if (e.IsChain) RbChain.IsChecked = true;
-            else RbSingle.IsChecked = true;
+            if (e.IsChain)
+            {
+                RbChain.IsChecked = true;
+                foreach (var item in e.ChainItems)
+                {
+                    _entry.ChainItems.Add(new ChainItem
+                    {
+                        ScenarioId = item.ScenarioId,
+                        ScenarioName = item.ScenarioName,
+                        DelayAfterMs = item.DelayAfterMs,
+                        Order = item.Order
+                    });
+                }
+                RefreshChain();
+            }
+            else
+            {
+                RbSingle.IsChecked = true;
+            }
 
             ChkStopOnError.IsChecked = e.StopChainOnError;
 
@@ -85,23 +110,28 @@ namespace ClickerIn
                         TxtOnceMinute.Text = e.OnceDateTime.Minute.ToString("D2");
                     }
                     break;
+
                 case ScheduleMode.Daily:
                     RbDaily.IsChecked = true;
                     TxtDailyHour.Text = e.DailyTime.Hours.ToString("D2");
                     TxtDailyMinute.Text = e.DailyTime.Minutes.ToString("D2");
                     break;
+
                 case ScheduleMode.WeeklyCustom:
                     RbWeekly.IsChecked = true;
                     break;
+
                 case ScheduleMode.Interval:
                     RbInterval.IsChecked = true;
                     TxtIntervalMinutes.Text = e.IntervalMinutes.ToString();
                     ChkTodayOnly.IsChecked = e.IntervalTodayOnly;
+
                     if (e.HasIntervalStartTime)
                     {
                         TxtStartHour.Text = e.IntervalStartTime.Hour.ToString("D2");
                         TxtStartMinute.Text = e.IntervalStartTime.Minute.ToString("D2");
                     }
+
                     if (e.HasIntervalEndTime)
                     {
                         TxtEndHour.Text = e.IntervalEndTime.Hour.ToString("D2");
@@ -114,6 +144,7 @@ namespace ClickerIn
             TxtPreAlertMin.Text = e.PreAlertMinutes.ToString();
             TxtProcess.Text = e.TargetProcessName ?? "";
         }
+
 
         private void WhatMode_Changed(object s, RoutedEventArgs e)
         {
@@ -350,5 +381,105 @@ namespace ClickerIn
             if (v > max) return max;
             return v;
         }
+   private void ChainEditDelay_Click(object sender, RoutedEventArgs e)
+{
+    if (LstChain.SelectedItem is ChainItem item)
+    {
+        var dialog = new Window
+        {
+            Title = "Изменить паузу",
+            Width = 300,
+            Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Owner = this,
+            Background = (Brush)Application.Current.Resources["WindowBackgroundBrush"],
+            ResizeMode = ResizeMode.NoResize
+        };
+
+        var grid = new Grid { Margin = new Thickness(20) };
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        var label = new TextBlock
+        {
+            Text = "Пауза после выполнения (мс):",
+            Margin = new Thickness(0, 0, 0, 10),
+            Foreground = (Brush)Application.Current.Resources["ForegroundBrush"]
+        };
+        Grid.SetRow(label, 0);
+
+        var textBox = new TextBox
+        {
+            Text = item.DelayAfterMs.ToString(),
+            Height = 32,
+            FontSize = 14,
+            TextAlignment = TextAlignment.Center,
+            Background = (Brush)Application.Current.Resources["GridBackgroundBrush"],
+            Foreground = (Brush)Application.Current.Resources["ForegroundBrush"],
+            BorderBrush = (Brush)Application.Current.Resources["BorderBrush"]
+        };
+        Grid.SetRow(textBox, 1);
+
+        var btnPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 15, 0, 0)
+        };
+        Grid.SetRow(btnPanel, 2);
+
+        var btnOk = new Button
+        {
+            Content = "OK",
+            Width = 80,
+            Height = 30,
+            Margin = new Thickness(0, 0, 10, 0),
+            Background = new SolidColorBrush(Color.FromRgb(142, 161, 230)),
+            Foreground = new SolidColorBrush(Color.FromRgb(30, 30, 46)),
+            BorderThickness = new Thickness(0),
+            Cursor = Cursors.Hand,
+            FontWeight = FontWeights.SemiBold
+        };
+        btnOk.Click += (s, ev) =>
+        {
+            if (int.TryParse(textBox.Text, out int delay))
+            {
+                item.DelayAfterMs = Math.Max(0, delay);
+                RefreshChain();
+                UpdatePreview();
+                dialog.DialogResult = true;
+            }
+        };
+
+        var btnCancel = new Button
+        {
+            Content = "Отмена",
+            Width = 80,
+            Height = 30,
+            Background = (Brush)Application.Current.Resources["ButtonBackgroundBrush"],
+            Foreground = (Brush)Application.Current.Resources["ButtonForegroundBrush"],
+            BorderThickness = new Thickness(0),
+            Cursor = Cursors.Hand
+        };
+        btnCancel.Click += (s, ev) => { dialog.DialogResult = false; };
+
+        btnPanel.Children.Add(btnOk);
+        btnPanel.Children.Add(btnCancel);
+
+        grid.Children.Add(label);
+        grid.Children.Add(textBox);
+        grid.Children.Add(btnPanel);
+
+        dialog.Content = grid;
+        dialog.ShowDialog();
     }
+    else
+    {
+        MessageBox.Show("Выберите сценарий из цепочки для изменения паузы.", "Внимание",
+            MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+}
+    }
+
 }

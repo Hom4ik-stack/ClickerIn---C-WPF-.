@@ -36,7 +36,7 @@ namespace ClickerIn.Services
             _win = win;
             _notify = notify;
             _log = log;
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _timer.Tick += OnTick;
             _timer.Start();
         }
@@ -61,6 +61,9 @@ namespace ClickerIn.Services
             entry.UpdateNextRun();
             entry.PreAlertShown = false;
             _entries[entry.Id] = entry;
+            _callbacks[entry.Id] = _callbacks.ContainsKey(entry.Id)
+                ? _callbacks[entry.Id]
+                : null;
             _waitingForResponse.Remove(entry.Id);
         }
 
@@ -90,7 +93,6 @@ namespace ClickerIn.Services
                     entry.PreAlertShown = true;
                     _waitingForResponse.Add(entry.Id);
                     int minutesLeft = (int)Math.Ceiling((nextRun - now).TotalMinutes);
-
                     string alertMsg = "Через " + minutesLeft + " мин:\n" + entry.DisplayName;
                     if (!string.IsNullOrEmpty(entry.TargetProcessName))
                         alertMsg += "\n\nОкно: " + entry.TargetProcessName;
@@ -152,9 +154,9 @@ namespace ClickerIn.Services
 
             try
             {
-                Func<ScheduleEntry, Task> cb;
-                if (_callbacks.TryGetValue(entry.Id, out cb))
+                if (_callbacks.TryGetValue(entry.Id, out var cb))
                     await cb(entry);
+
                 entry.RunCount++;
                 entry.LastRun = DateTime.Now;
             }
@@ -167,6 +169,11 @@ namespace ClickerIn.Services
             {
                 entry.Enabled = false;
                 entry.ClearNextRun();
+            }
+            else if (entry.Mode == ScheduleMode.Interval)
+            {
+                entry.LastRun = DateTime.Now;
+                entry.UpdateNextRun();
             }
             else
             {

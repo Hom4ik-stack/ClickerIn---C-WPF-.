@@ -11,6 +11,7 @@ namespace ClickerIn.Models
         private string _description = "";
         private bool _isLoop;
         private int _loopCount;
+        private int _maxDurationMinutes;
         private HotkeySettings _hotkey;
         private RepeatSettings _repeat;
         private string _targetProcessName;
@@ -28,6 +29,7 @@ namespace ClickerIn.Models
         public ObservableCollection<Step> Steps { get; set; } = new ObservableCollection<Step>();
         public bool IsLoop { get => _isLoop; set => Set(ref _isLoop, value); }
         public int LoopCount { get => _loopCount; set => Set(ref _loopCount, value); }
+        public int MaxDurationMinutes { get => _maxDurationMinutes; set => Set(ref _maxDurationMinutes, value); }
         public HotkeySettings Hotkey { get => _hotkey; set => Set(ref _hotkey, value); }
         public RepeatSettings Repeat { get => _repeat; set => Set(ref _repeat, value); }
         public string TargetProcessName { get => _targetProcessName; set => Set(ref _targetProcessName, value); }
@@ -46,6 +48,7 @@ namespace ClickerIn.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? ModifiedAt { get; set; }
+
         public override string ToString() => Name;
     }
 }
